@@ -13,8 +13,10 @@ class GameScene: SKScene {
     
     private var slots = [WhackSlot]()
     private var gameScore : SKLabelNode!
+    private var gameOver: SKSpriteNode!
     private var popupTime = 0.85
     private var numRounds = 0
+    private var isGameOver = false
     private var score : Int = 0 {
         didSet {
             gameScore.text = "Score: \(score)"
@@ -76,6 +78,18 @@ class GameScene: SKScene {
                 }
             }
         }
+        if isGameOver {
+            print("TOUCHED AFTER GAME OVER")
+            isGameOver = false
+            score = 0
+            numRounds = 0
+            popupTime = 0.85
+            gameOver.removeFromParent()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                [unowned self] in self.createEnemy()
+            }
+        }
     }
     
     func createSlot(at position: CGPoint) {
@@ -93,10 +107,17 @@ class GameScene: SKScene {
                 slot.hide()
             }
             
-            let gameOver = SKSpriteNode(imageNamed: "gameOver")
+            isGameOver = true
+            
+            gameOver = SKSpriteNode(imageNamed: "gameOver")
             gameOver.position = CGPoint(x: 512, y: 384)
             gameOver.zPosition = 1
             addChild(gameOver)
+            
+            let upScaleGameOver = SKAction.scale(to: 1.1, duration: 0.5)
+            let downScaleGameOver = SKAction.scale(to: 1.0, duration: 0.5)
+            
+            gameOver.run(SKAction.repeatForever(SKAction.sequence([upScaleGameOver, downScaleGameOver])))
             
             return
         }
